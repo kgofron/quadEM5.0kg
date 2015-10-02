@@ -252,6 +252,7 @@ void drvAHxxx::readThread(void)
             }
             offset = 0;
             if (ascii_mode) {
+	      for (i=0; i<valuesPerRead_; i++) {
                 int newline_position = ((resolution_/4)*numChannels_ + (numChannels_-1) + 1);
                 while (input[offset+newline_position] != '\n'){
                     printf("newline char not found at the right place\n");
@@ -273,14 +274,14 @@ void drvAHxxx::readThread(void)
                 }
                 // printf("parsed values: %x %x %x %x\n", tmp[0], tmp[1], tmp[2], tmp[3]);
                 for(j=0; j<numChannels_; j++) {
-                    if (resolution_ == 16)
-                        raw[j] = convert_24_bit_to_int(tmp[j]);
+                    if (resolution_ == 24)
+                        raw[j] += convert_24_bit_to_int(tmp[j]);
                     else
-                        raw[j] = convert_16_bit_to_int(tmp[j]);
+                        raw[j] += convert_16_bit_to_int(tmp[j]);
                 }
                 // printf("raw values: %f %f %f %f\n", raw[0], raw[1], raw[2], raw[3]);
                 offset += ((resolution_/4)*numChannels_ + (numChannels_-1) + 2);
-
+	    }
             }
             else if (AH401Series_) {
                 // These models are little-endian byte order
