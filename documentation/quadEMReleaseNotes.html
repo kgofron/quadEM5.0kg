@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <title>quadEM Release Notes</title>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type" />
+</head>
+<body>
+  <h1 style="text-align: center">
+    quadEM Release Notes</h1>
+  <h2 style="text-align: center">
+    Release 5-0 (October 14, 2014)</h2>
+  <ul>
+    <li>Supported a new geometry where the current sources are arranged in a square array
+      with 2 on the top and 2 on the bottom, in addition to the previous diamond geometry
+      of top, bottom, left right. The sum, difference and position calculations are done
+      differently in this geometry.</li>
+    <li>Added a new Geometry PV that controls which geometry (Diamond, Square) is used
+      in the calculations.</li>
+    <li>Because the diodes that contribute to the sum, difference and position calculations
+      depend on the geometry, the names of the Sum, Diff and Position PVs have changed.
+      <ul>
+        <li>Sum12, Sum34 have changed to SumX, SumY</li>
+        <li>Diff12, Diff34 have changed to DiffX, DiffY</li>
+        <li>Position12, Position34 have changed to PositionX, PositionY</li>
+        <li>Sum1234 has changed to SumAll</li>
+      </ul>
+    </li>
+  </ul>
+  <h2 style="text-align: center">
+    Release 4-1 (April 14, 2014)</h2>
+  <ul>
+    <li>Added new AcquireMode record to support both Continuous and One-shot acquisition
+      modes. Previously only continuous acquisition was supported. One-shot acquires the
+      data from one AveragingTime and then stops acquisition. One-shot mode can be used
+      with either triggered or free-running acquisition.<br />
+      Note: Correct operation of the One-shot mode and triggered modes on the AH501D requires
+      firmware version 2.0 or later. Previous firmware versions have bugs that prevent
+      correct operation in these modes. The firmware can be updated in the field.</li>
+    <li>The Acquire record was changed from a bo to a busy record to support use with
+      the sscan record when AcquireMode=One-shot.</li>
+    <li>Added optional "modelName" parameter to the constructors and configuration commands
+      for the startup scripts. This allows one to specify what model of AH401x or AH501x
+      is being used. The driver attempts to detect this automatically from the firmware
+      version it reads from the device, but some of the Elettra units have strange firmware
+      version strings so this can fail.</li>
+    <li>Fix to allow fast feedback to work on APS_EM.</li>
+    <li>Added new Firmware stringin record containing the firmware version from the device.</li>
+    <li>Changed to use R2-0 of areaDetector. It only uses the ADCORE and ADBINARIES modules.</li>
+  </ul>
+  <h2 style="text-align: center">
+    Release 4-0 (March 12, 2013)</h2>
+  <ul>
+    <li>Major update of the module. The device-dependent classes (AHxxx, APS_EM) have
+      not changed signficantly. However the base quadEM class has been rewritten. In R3-x
+      the quadEM base class worked as follows:
+      <ul>
+        <li>The ai records for the 11 parameters (Current[1-3],Sum[12,34,1234],Diff[12,34],
+          and Position[12,34]) were computed using the asynInt32Average device support.
+        </li>
+        <li>This meant that there were 11 callbacks each time a new value came from the electrometer,
+          or more than 70,000 callbacks per second under some circumstances. This was a significant
+          CPU load.</li>
+        <li>This approach produced average values, but it did not produce other useful statistics
+          like the standard deviation, histogram of values, etc.</li>
+        <li>There was no good way to stream all of the readings to a disk file for an arbitrarily
+          long time. The TimeSeries support was limited to a fixed time length, limited by
+          available memory.</li>
+      </ul>
+      R4-0 addresses these problems as follows:
+      <ul>
+        <li>The quadEM base class is now derived from the asynNDArray class in areaDetector,
+          rather than directly from asynPortDriver.</li>
+        <li>The data from the device-dependent drivers are now first placed into a ring buffer
+          whose size is defined in the constructor.</li>
+        <li>There is a new PV called AveragingTime that determines the time period over which
+          to average the readings. The AveragingTime divided by the SampleTime determines
+          the number of samples to average, NumAverage_RBV. When this number of samples have
+          been accumulated in the ring buffer a separate thread copies them to a set of NDArrays
+          and calls any registered plugins. </li>
+        <li>There is a separate NDPluginStats plugin loaded for each of the 11 data values.
+          This plugin receives an array of dimensions [NumAverage_RBV]. This plugin computes
+          not only the mean (as in the previous version), but also the standard deviation,
+          histogram of values, etc.</li>
+        <li>One of the NDArrays contains all of the data values, and has dimensions [11,NumAverage_RBV].
+          This array can be passed to any of the file writing plugins, which can thus stream
+          all of the data to disk for arbitrarily long time periods.</li>
+        <li>An NDStdArrays plugin is also loaded. This can be used to pass all of the data
+          [11,NumAverage_RBV] or any of the individual data arrays to any channel access client.</li>
+        <li>This new approach provides much more information and flexibility. But it also
+          significantly reduces the number of callbacks. For example if the averaging time
+          is 1 second the number of callbacks is reduced from thousands per second to 12 per
+          second, because the data are being passed in arrays.</li>
+        <li>The computationally intensive work of calculating the statistics is now being
+          done in plugins, so can be done in different threads, each potentially running in
+          a separate core on modern CPUs.</li>
+      </ul>
+    </li>
+  </ul>
+  <h2 style="text-align: center">
+    Release 3-3 (December 20, 2012)</h2>
+  <ul>
+    <li>Fixed problem with mutex locking on AH401 (and perhaps AH501). The lock was not
+      being released for in the read task for long enough to allow EPICS to quickly stop
+      acquisition.</li>
+  </ul>
+  <h2 style="text-align: center">
+    Release 3-2 (December 6, 2012)</h2>
+  <ul>
+    <li>Fixed bug in reading binary data from AH501 meters. The manual incorrectly documented
+      the binary data format.</li>
+    <li>New version of the AH501D manual that correctly documents the binary data format.</li>
+    <li>Minor changes to avoid compiler warnings.</li>
+  </ul>
+  <h2 style="text-align: center">
+    Release 3-1 (September 13, 2012)</h2>
+  <ul>
+    <li>Added support for AH401D and the AH501 series (AH501, AH501C, AH501D) picoammeters
+      from CaenEls. The AH501 series are significantly faster than the AH401 series. They
+      work differently than the AH401 or APS_EM units, and do not support the concept
+      of integration time or ping-pong. They have programmable resolution (16-bit or 24-bits),
+      programmable number of active input channels (1, 2, or 4), and programmable bias
+      power supply (AH501C and AH501D only).</li>
+    <li>Added new record NumAverage. This applies to all models, and can be used to average
+      NumAverage readings from the meter before doing the callbacks. On the AH501 series
+      this also reduces the number of read operations by a factor of NumAverage, by increasing
+      the number of messages read in a single operation. This reduces CPU time in direct
+      proportion to NumAverage, which is particularly important with slow computers (e.g.
+      older VME cards) with the AH501 series.</li>
+    <li>Tested using UDP rather than TCP for communication with the AH401B and AH501 meters.
+      This is more efficient than TCP, reducing CPU time by up to 10%. The example startup
+      scripts now use UDP. The Lantronix DeviceInstaller must be used to configure the
+      electrometer to use UDP, since the default is TCP.</li>
+    <li>Added new record Model. This provides the model index and name of the device.
+      This is determined automatically by the driver.</li>
+    <li>Modified the medm screens so they only display the parameters that apply to the
+      specific model being used.</li>
+    <li>Modified startup scripts to simplify and support testing all models on any OS
+      (for AH401 and AH501 series), and vxWorks for APS_EM.</li>
+  </ul>
+  <h2 style="text-align: center">
+    Release 3-0 (September 6, 2012)</h2>
+  <ul>
+    <li>Complete re-write of the module. The new version is based on asynPortDriver. It
+      consists of a base class, drvQuadEM.cpp, and two derived classes:
+      <ol>
+        <li>drvAH401B.cpp which is new support for the AH401B picoammeter designed and sold
+          by <a href="http://ilo.elettra.trieste.it/index.php?page=_layout_prodotto&amp;id=54&amp;lang=en">
+            Synchrotron Trieste (elettra)</a>. It is also sold by <a href="http://www.caenels.com/caenels/product.php?fam=cemis&amp;mod=AH401B">
+              CAENels</a>. </li>
+        <li>drvAPS_EM.cpp, which is improved support for the APS electrometer designed by
+          Steve Ross.</li>
+      </ol>
+      The new version is not completely backwards compatible with the previous version,
+      and will require modification of startup scripts and medm screens. </li>
+    <li>Added support for power-spectra calculations using FFTs on time-series arrays.
+      These now run in the IOC, rather than requiring a separate Channel Access client,
+      which previous releases required.</li>
+  </ul>
+  <h2 style="text-align: center">
+    Release 2-6 (November 2, 2011)</h2>
+  <ul>
+    <li>Added support for the remote reboot capability of the electrometer. This makes
+      initialization much simpler and more robust, since it can be done with software
+      commands rather than power-cycling and toggling switches. It is only supported on
+      newer electrometer firmware, but does not cause ill effects when sent to older electrometers.
+      Added a Reboot record to the database, and modified the Initialize seq record to
+      process the Reboot record as the first thing it does.</li>
+    <li>Added an additional optional parameter to initQuadEM. This is the drvInfo field
+      for the ipUnidig module. Previously the driver hardcoded pasynUser-&gt;reason=0
+      when using the asynUInt32Digital interface. Now it uses drvUser-&gt;create, which
+      is the correct way to do it.</li>
+    <li>Created new documentation file, <a href="quadEMDoc.html">quadEMDoc.html</a>.</li>
+  </ul>
+  <h2 style="text-align: center">
+    Release 2-5 (Sept 9, 2011)</h2>
+  <ul>
+    <li>Modified RELEASE; deleted RELEASE.arch.</li>
+    <li>Added .opi display files, for CSS-BOY</li>
+  </ul>
+  <h2 style="text-align: center">
+    Release 2-4-1 (March 30, 2010)</h2>
+  <ul>
+    <li>Support parallel build.</li>
+  </ul>
+  <p>
+  </p>
+  <h2 style="text-align: center">
+    Release 2-4 (May 19, 2008)</h2>
+  <ul>
+    <li>Removed unused functions in driver.</li>
+    <li>Added new adl file quadEM_less.adl.</li>
+    <li>Fixed bug in quadEM_settings.req.</li>
+  </ul>
+  <p>
+  </p>
+  <h2 style="text-align: center">
+    Release 2-3 (Sept. 6, 2006)</h2>
+  <ul>
+    <li>Fixed driver so that configuration routines can be called from iocsh.</li>
+  </ul>
+  <p>
+  </p>
+  <h2 style="text-align: center">
+    Release 2-2 (March 29, 2005)</h2>
+  <ul>
+    <li>Changed from using hardcoded stack size in epicsThreadCreate to generic stack
+      size</li>
+  </ul>
+  <p>
+  </p>
+  <h2 style="text-align: center">
+    Release 2-1 (March 24, 2005)</h2>
+  <ul>
+    <li>Converted from MPF to ASYN.</li>
+    <li>Converted from specialized device support to generic device support from ASYN
+      and MCA.</li>
+    <li>Converted from C++ to C</li>
+  </ul>
+  <p>
+  </p>
+  <h2 style="text-align: center">
+    Release 2-0 (March 3, 2004)</h2>
+  <ul>
+    <li>First release for EPICS 3.14.</li>
+    <li>Converted from vxWorks functions to OSI functions</li>
+  </ul>
+  <p>
+  </p>
+  <h2 style="text-align: center">
+    Release 1-1 (November 3, 2003)</h2>
+  <ul>
+    <li>Initial release, for EPICS 3.13.</li>
+  </ul>
+  <p>
+  </p>
+  <hr />
+  <address>
+    Suggestions and Comments to:
+    <br />
+    <a href="mailto:rivers@cars.uchicago.edu">Mark Rivers </a>: (rivers@cars.uchicago.edu)
+    <br />
+  </address>
+</body>
+</html>

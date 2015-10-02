@@ -1,0 +1,17 @@
+quadEM Driver R5-0 changes
+
+AH501D electrometer: ASCII mode added
+The binary mode data are send in format (24bit, 4 channels):
+000 000 000 000 
+000 000 000 000
+....
+
+{spaces were added for visibility}
+
+The network forces occasional retransmissions, after which the AH501D might dropfew bytes from sending queue. The missing data that receiver is no longer synchronized to sender, and misaligns the data for channels (shift of byte), or misaligns the channels (channel 1 reported in channel 2 data).
+
+The ASCII mode sends data for channels terminated by LF character that allows alignment of the data at the receiver.
+fff fff fff fff\LF
+fff fff fff fff\LF
+...
+

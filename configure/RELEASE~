@@ -1,0 +1,70 @@
+##RELEASE Location of external products
+# Run "gnumake clean uninstall install" in the application
+# top directory each time this file is changed.
+
+TEMPLATE_TOP=$(EPICS_BASE)/templates/makeBaseApp/top
+
+# If you don't want to install into $(TOP) then
+# define INSTALL_LOCATION_APP here
+#INSTALL_LOCATION_APP=<fullpathname>
+
+#SUPPORT=/corvette/home/epics/devel
+SUPPORT=/epics/support
+-include $(TOP)/../configure/SUPPORT.$(EPICS_HOST_ARCH)
+# This module
+#QUADEM=$(SUPPORT)/quadEM-4-0
+QUADEM=$(SUPPORT)/quadEM
+
+# ASYN - for device/driver support
+#ASYN=$(SUPPORT)/asyn-4-24
+ASYN=$(SUPPORT)/asyn
+
+### The following are needed only for the test application
+
+# For ipUnidig for APS_EM
+#IPAC=$(SUPPORT)/ipac-2-12
+IPAC=$(SUPPORT)/ipac
+
+# Busy record 
+#BUSY=$(SUPPORT)/busy-1-6
+BUSY=$(SUPPORT)/busy
+
+# IpUnidig for APS_EM
+IPUNIDIG=$(SUPPORT)/ipUnidig-2-9
+
+# quadEM_SNL uses the sequencer
+#SNCSEQ=$(SUPPORT)/seq-2-1-10
+SNCSEQ=$(SUPPORT)/seq
+
+# save_restore
+#AUTOSAVE=$(SUPPORT)/autosave-5-4-2
+AUTOSAVE=$(SUPPORT)/autosave
+
+# MCA is used for time series
+#MCA=$(SUPPORT)/mca-7-5
+MCA=$(SUPPORT)/mca
+
+# areaDetector for plugins like NDPluginStats
+#AREA_DETECTOR=$(SUPPORT)/areaDetector-2-1
+#ADCORE=$(SUPPORT)/areaDetector-2-1/ADCore
+#ADBINARIES=$(SUPPORT)/areaDetector-2-0/ADBinaries
+AREA_DETECTOR=$(SUPPORT)/areaDetector
+ADCORE=$(SUPPORT)/areaDetector/ADCore
+ADBINARIES=$(SUPPORT)/areaDetector/ADBinaries
+
+# SSCAN is needed for general scanning
+#SSCAN=$(SUPPORT)/sscan-2-10
+SSCAN=$(SUPPORT)/sscan
+
+# calc
+#CALC=$(SUPPORT)/calc-3-4-1
+CALC=$(SUPPORT)/calc
+
+# EPICS_BASE usually appears last so other apps can override stuff:
+#EPICS_BASE=/corvette/usr/local/epics/base-3.14.12.4
+EPICS_BASE=/usr/local/epics/base
+-include $(TOP)/../configure/EPICS_BASE.$(EPICS_HOST_ARCH)
+
+#Capfast users may need the following definitions
+#CAPFAST_TEMPLATES=
+#SCH2EDIF_PATH=

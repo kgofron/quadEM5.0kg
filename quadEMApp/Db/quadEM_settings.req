@@ -1,0 +1,27 @@
+# FILE... quadEM_settings.req
+$(P)$(R)Acquire
+$(P)$(R)AcquireMode
+$(P)$(R)Range
+$(P)$(R)PingPong
+$(P)$(R)IntegrationTime
+$(P)$(R)AveragingTime
+$(P)$(R)Trigger
+$(P)$(R)NumChannels
+$(P)$(R)BiasState
+$(P)$(R)BiasVoltage
+$(P)$(R)Resolution
+$(P)$(R)ValuesPerRead
+$(P)$(R)Geometry
+$(P)$(R)CurrentName1
+$(P)$(R)CurrentName2
+$(P)$(R)CurrentName3
+$(P)$(R)CurrentName4
+$(P)$(R)CurrentOffset1
+$(P)$(R)CurrentOffset2
+$(P)$(R)CurrentOffset3
+$(P)$(R)CurrentOffset4
+$(P)$(R)PositionOffsetX
+$(P)$(R)PositionOffsetY
+$(P)$(R)PositionScaleX
+$(P)$(R)PositionScaleY
+$(P)$(R)NDAttributesFile
